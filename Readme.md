@@ -21,6 +21,8 @@ This node start a TCP/IP socket and connects to the counterpart.
 - `~port`: The port for the TCP/IP connection
 - `~tcp_role`: role of the socket. Can be either `server` or `client`
 - `~topic_yaml`: Path to the topic file
+- `~wrap_ssl`: Flag to enable secure communication
+- `~allow_self_signed`: Flag to allow self signed SSL certificate if `~wrap_ssl` is true
 - `~cert_path`: Path to the SSL certificate of the own host
 - `~key_path`: Path to the private key of the own host 
 - `~cert_verify_path`: Path to the SSL certificate of the opposite host for verification
