@@ -34,17 +34,33 @@ The node publishes the topics defined in the topic yaml files that originate on 
 - `communication_latency_float` [std_msgs/Float32]: Communication latency in ms
 - `communication_latency` [jsk_rviz_plugins/OverlayText]: Communication latency in ms for visulaization in RViz
 
-## Launch file
-
-## Network settings
-### Local forwarding for ports below XXX
+## Quickstart guide
+### Localhost
+To test rosurgical locally, the following two launch files can be launched 
+```bash
+roslaunch rosurgical start_server_localhost.launch
+roslaunch rosurgical start_client_localhost.launch
+```
 
 ### Local network
+To run rosurical between to systems connected locally, rosuricial needs to be launched on both systems. First, the network configurations or each system must be set that they are in the same subnet. If the 
+On the server machine, run the following command:
+```bash
+roslaunch rosurgical start_server_x.launch
+```
+On the client machine, run the following command:
+```bash
+roslaunch rosurgical start_client_x.launch
+```
 
 ### Internet w/ access to router settings
 
 ### Internet w/o access to router settings (e.g. university or hospital network)
 
+### Ports <= 1024
+```bash
+sudo iptables -t nat -A PREROUTING -p tcp --dport 443 -j REDIRECT --to-ports 3000
+```
 ## Citation
 
 ```
