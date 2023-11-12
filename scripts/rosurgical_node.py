@@ -66,7 +66,7 @@ if __name__ == '__main__':
     yaml_dir = rospy.get_param('~topic_yaml')
     assert os.path.exists(yaml_dir), f"Topic yaml could not be found {yaml_dir}"
     topic_names, message_types, msg_lens, ros_roles = parse_topic_paramters(tcp_role, yaml_dir)
-
+    print("Topic")
     # Initialize socket
     try:
         if tcp_role == 'server':
