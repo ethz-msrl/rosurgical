@@ -298,6 +298,8 @@ class ROSurgicalClient(ROSurgicalSocket):
 
         print(self.message_lens)
 
+        rospy.sleep(1)
+
         # Set flags        
         self.all_sent = True
         self.all_reveived = True
@@ -350,7 +352,10 @@ class ROSurgicalServer(ROSurgicalSocket):
         self.receive_msg_lengths()
         self.send_msg_lengths()
 
+
         print(self.message_lens)
+
+        rospy.sleep(2)
 
         # Set flags        
         self.all_sent = True
