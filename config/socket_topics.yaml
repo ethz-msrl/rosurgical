@@ -1,12 +1,8 @@
-float_host:
+float_server:
   msg_type: "std_msgs/Float32"
   msg_len: 1000
-  origin: "host"
-string_host:
-  msg_type: "std_msgs/String"
-  msg_len: 1000
-  origin: "host"
-float_client_:
+  origin: "server"
+float_client:
   msg_type: "std_msgs/Float32"
   msg_len: 1000
   origin: "client"
