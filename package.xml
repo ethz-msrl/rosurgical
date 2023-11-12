@@ -2,13 +2,14 @@
 <package format="2">
   <name>rosurgical</name>
   <version>0.0.1</version>
-  <description>Package for ROS-based telesurgery in a plug-and-play manner.</description>
+  <description>Package for ROS-based telesurgery in a plug and play manner.</description>
   
   <author email="fheemeyer@ethz.ch">Florian Heemeyer</author>
   <maintainer email="fheemeyer@ethz.ch">Florian Heemeyer</maintainer>
   
   <license>BSD</license>
   
+  <buildtool_depend>catkin</buildtool_depend>
   <buildtool_depend>catkin_simple</buildtool_depend>
   
   <depend>rospy</depend>

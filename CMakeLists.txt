@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(tcp_socket)
+project(rosurgical)
 
 find_package(catkin_simple REQUIRED)
 # Add the python directory to the PYTHONPATH

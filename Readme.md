@@ -34,6 +34,16 @@ The node publishes the topics defined in the topic yaml files that originate on 
 - `communication_latency_float` [std_msgs/Float32]: Communication latency in ms
 - `communication_latency` [jsk_rviz_plugins/OverlayText]: Communication latency in ms for visulaization in RViz
 
+## Launch file
+
+## Network settings
+### Local forwarding for ports below XXX
+
+### Local network
+
+### Internet w/ access to router settings
+
+### Internet w/o access to router settings (e.g. university or hospital network)
 
 ## Citation
 
