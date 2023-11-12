@@ -3,23 +3,23 @@ import ssl
 import time
 import socket
 from io import BytesIO
-from typing import Callable, Dict, List
+from typing import Dict, List
 from functools import partial
 from abc import ABC, abstractmethod, abstractproperty
 
 import rospy
 from std_msgs.msg import Float32
 from jsk_rviz_plugins.msg import OverlayText
-from sockets.utils import message_type_factory, create_latency_overlay_msg
+from rosurgical_lib.utils import message_type_factory, create_latency_overlay_msg
 
 
-class BidirectionalSocket:
-    def __init__(self, host: str, port:str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], msg_lens: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
+class ROSurgicalSocket:
+    def __init__(self, hostname: str, port:str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], msg_lens: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
         """
         Constructor of a bidirectional socket for ros communication. This socket can transfer several topics at the same time.
         
         Args:
-            host (str): IP address of the host computer or the gate if port forwarding is used
+            hostname (str): IP address of the host computer or the gate if port forwarding is used
             port (str): communication port
             message_types (List[rospy.Message]): List of all ros message types to be transferred
             ros_role (List[str]): List of all ros roles. A role can either be 'subscriber' or 'publisher'
@@ -31,7 +31,7 @@ class BidirectionalSocket:
         self.all_reveived = False
 
         # General attributes
-        self.host = host
+        self.hostname = hostname
         assert len(message_types) == len(topic_names)
         self.topic_names = topic_names
         self.message_types = {topic: message_type_factory(msg_type) for topic, msg_type in zip(topic_names, message_types)}
@@ -189,15 +189,19 @@ class BidirectionalSocket:
             self.publishers[topic_name].publish(msg)
 
     def wrap_socket_ssl_context(self, socket: socket.socket, cert_path: str, key_path: str, cert_verify_path: str, is_server: bool):
-        # Check that certificates and key files exist.
-        assert os.path.exists(cert_path), f"Certificate could not be found {cert_path}"
-        assert os.path.exists(key_path), f"Key could not be found {key_path}"
-        assert os.path.exists(cert_verify_path), f"Verification certificate could not be found {cert_verify_path}"
+        allow_self_signed = rospy.get_param('~allow_self_signed', True)
 
         # Create ssl context 
         protocol = ssl.PROTOCOL_TLS_SERVER if is_server else ssl.PROTOCOL_TLS_CLIENT
         context = ssl.SSLContext(protocol)
-        context.verify_mode = ssl.CERT_REQUIRED
+        
+        if is_server:
+            context.verify_mode = ssl.CERT_REQUIRED
+        else:
+            context.check_hostname = False if allow_self_signed else True
+            context.verify_mode = ssl.CERT_NONE if allow_self_signed else ssl.CERT_REQUIRED
+            
+
         context.load_cert_chain(cert_path, key_path)
         context.load_verify_locations(cert_verify_path)
 
@@ -206,16 +210,15 @@ class BidirectionalSocket:
             if is_server:
                 ssl_socket = context.wrap_socket(socket, server_side=True)
             else:
-                context.check_hostname = False
-                ssl_socket = context.wrap_socket(socket, server_hostname=self.host) 
+                ssl_socket = context.wrap_socket(socket, server_hostname=self.hostname) 
         except Exception as e:
             raise ConnectionError(e)
         
         return ssl_socket
 
-class BidirectionalClient(BidirectionalSocket):
-    def __init__(self, host: str, port: str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str] , msg_lens: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
-        super().__init__(host, port, message_types, topic_names, ros_roles, msg_lens, cert_path, key_path, cert_verify_path)
+class ROSurgicalClient(ROSurgicalSocket):
+    def __init__(self, hostname: str, port: str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str] , msg_lens: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
+        super().__init__(hostname, port, message_types, topic_names, ros_roles, msg_lens, cert_path, key_path, cert_verify_path)
 
         # Initialize client
         self.socket_no_ssl = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
@@ -232,9 +235,9 @@ class BidirectionalClient(BidirectionalSocket):
             rospy.loginfo("Establishing TCP/IP connection without SSL")
             self.socket = self.socket_no_ssl
         # Connect to host
-        self.socket.connect((host, port))
+        self.socket.connect((hostname, port))
         rospy.sleep(1)
-        rospy.loginfo(f'Successfully connected {host} on port {port}.')
+        rospy.loginfo(f'Successfully connected {hostname} on port {port}.')
 
         # Set flags        
         self.all_sent = True
@@ -251,16 +254,16 @@ class BidirectionalClient(BidirectionalSocket):
         """
         return self.socket
 
-class BidirectionalHost(BidirectionalSocket):
-    def __init__(self, host: str, port: str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], msg_lens: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
-        super().__init__(host, port, message_types, topic_names, ros_roles, msg_lens, cert_path, key_path, cert_verify_path)
+class ROSurgicalServer(ROSurgicalSocket):
+    def __init__(self, hostname: str, port: str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], msg_lens: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
+        super().__init__(hostname, port, message_types, topic_names, ros_roles, msg_lens, cert_path, key_path, cert_verify_path)
 
         # Initialize host
         self.socket_no_ssl = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
         self.socket_no_ssl.setblocking(True)
         self.socket_no_ssl.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket_no_ssl.bind((host, port))
-        rospy.loginfo(f'Server {host} on port {port} launched.')
+        self.socket_no_ssl.bind((hostname, port))
+        rospy.loginfo(f'Server {hostname} on port {port} launched.')
 
         # Check if ssl requested
         paths = [cert_path, key_path, cert_verify_path]
@@ -276,7 +279,7 @@ class BidirectionalHost(BidirectionalSocket):
 
         # Listen for client
         self.socket.listen(1) # Allow single connection only
-        rospy.loginfo(f'Server {host} listening to port {port}.')
+        rospy.loginfo(f'Server {hostname} listening to port {port}.')
 
         # Accept client connection
         self.client_socket, self.client_address = self.socket.accept()
