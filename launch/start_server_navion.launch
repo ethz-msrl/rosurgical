@@ -4,6 +4,8 @@
 
    <include file="$(find rosurgical)/launch/start_rosurgical_socket.launch">
       <arg name="tcp_role" value="server" />
+      <arg name="hostname" value="navion-ros.ethz.ch" />
+      <arg name="port" value="3000" />
       <arg name="topics_yaml" default="$(find rosurgical)/config/socket_topics.yaml" />
       <arg name="cert_path" value="~/.ssl/navion-ros.crt" />  
       <arg name="key_path" value="~/.ssl/navion-ros.key" />

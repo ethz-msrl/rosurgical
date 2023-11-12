@@ -29,14 +29,13 @@ OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 """
 
-import os
 import ssl
 import time
+import struct
 import socket
 from io import BytesIO
 from typing import Dict, List
 from functools import partial
-from abc import ABC, abstractmethod, abstractproperty
 
 import rospy
 from std_msgs.msg import Float32
@@ -66,9 +65,9 @@ class ROSurgicalSocket:
         assert len(message_types) == len(topic_names)
         self.topic_names = topic_names
         self.message_types = {topic: message_type_factory(msg_type) for topic, msg_type in zip(topic_names, message_types)}
-        self.message_lens = {topic: int(msg_len) for topic, msg_len in zip(topic_names, msg_lens)}
+        self.message_lens = {topic: None for topic in topic_names}
         self.msg_len = 0
-        self.recevie_list = [0]
+        self.receive_list = [0]
         self.ros_roles = ros_roles
         
         # Ros attributes
@@ -97,8 +96,8 @@ class ROSurgicalSocket:
             elif ros_role == 'publisher':
                 publisher = rospy.Publisher(f'{topic}', message_type, queue_size=1)
                 self.publishers[topic] = publisher
-                self.msg_len += self.message_lens[topic]
-                self.recevie_list.append(self.recevie_list[-1]+self.message_lens[topic])
+
+        self.get_local_msg_lengths()
     
     def cb(self, topic_name: str, msg: rospy.Message):
         """Subscriber callback. Can be used as callback for a specific subscriber by defining a partial function w/ the respective topic_name.
@@ -148,12 +147,35 @@ class ROSurgicalSocket:
             if self.subscriber_msgs[key] == None:
                 return False
         return True
+    
+    def get_local_msg_lengths(self)-> bool:
+        for key in self.subscribers:
+            msg = rospy.wait_for_message(key, self.message_types[key])
+            temp_buffer = BytesIO()
+            msg.serialize(temp_buffer)
+            temp_buffer = temp_buffer.getvalue()
+            msg_len = len(temp_buffer)
+            self.message_lens[key] = int(1.2*(msg_len+1))
+
+    def receive_msg_lengths(self)-> bool:
+        for topic_name in self.publishers:
+            data = self.communication_socket.recv(4)       
+            length = struct.unpack('!i', data)[0] 
+            self.message_lens[topic_name] = length
+            self.msg_len += self.message_lens[topic_name]
+            self.receive_list.append(self.receive_list[-1]+self.message_lens[topic_name])
+
+    def send_msg_lengths(self)-> bool:
+        for topic_name in self.subscribers:
+            length = self.message_lens[topic_name]
+            data = struct.pack('!i', length)
+            self.communication_socket.send(data)
 
     def zero_messages(self, dictionary: Dict)-> None:
         """Sets all values of a dictionary to None. This is done to reset the messages after they have been sent.
 
         Args:
-            dictionary (Dict): diytionary to be reset
+            dictionary (Dict): dictionary to be reset
         """
         for key in dictionary:
             dictionary[key] = None
@@ -186,8 +208,6 @@ class ROSurgicalSocket:
   
         # Send buffer and reset dictionary
         self.communication_socket.send(total_buffer)
-        # self.zero_messages(self.subscriber_msgs)
-
         
     def receive_messages(self):
         """Receives all messages from the other side of the socket.
@@ -209,8 +229,8 @@ class ROSurgicalSocket:
         
         # Decode buffer
         for i, topic_name in enumerate(self.publishers):
-            start = self.recevie_list[i]
-            end = self.recevie_list[i+1]
+            start = self.receive_list[i]
+            end = self.receive_list[i+1]
             temp_byte = msg_bytes[start:end]
             
             # Decode message
@@ -269,10 +289,16 @@ class ROSurgicalClient(ROSurgicalSocket):
         self.socket.connect((hostname, port))
         rospy.sleep(1)
         rospy.loginfo(f'Successfully connected {hostname} on port {port}.')
+        rospy.sleep(2)
+
+        # Message lengths
+        self.send_msg_lengths()
+        self.receive_msg_lengths()
 
         # Set flags        
         self.all_sent = True
         self.all_reveived = True
+
 
         # Start listening
         rospy.spin()
@@ -316,6 +342,11 @@ class ROSurgicalServer(ROSurgicalSocket):
         self.client_socket, self.client_address = self.socket.accept()
         rospy.sleep(2)
         rospy.loginfo(f'Connection from {self.client_address} has been established.')
+        rospy.sleep(2)
+
+        # Message lengths
+        self.receive_msg_lengths()
+        self.send_msg_lengths()
 
         # Set flags        
         self.all_sent = True

@@ -6,3 +6,11 @@ float_client:
   msg_type: "std_msgs/Float32"
   msg_len: 1000
   origin: "client"
+string_client:
+  msg_type: "std_msgs/String"
+  msg_len: 1000
+  origin: "client"
+string_server:
+  msg_type: "std_msgs/String"
+  msg_len: 1000
+  origin: "client"
