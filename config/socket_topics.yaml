@@ -13,4 +13,4 @@ string_client:
 string_server:
   msg_type: "std_msgs/String"
   msg_len: 1000
-  origin: "client"
+  origin: "server"
