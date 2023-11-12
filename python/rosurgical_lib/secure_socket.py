@@ -97,7 +97,9 @@ class ROSurgicalSocket:
                 publisher = rospy.Publisher(f'{topic}', message_type, queue_size=1)
                 self.publishers[topic] = publisher
 
+        print("Before")
         self.get_local_msg_lengths()
+        print("After")
     
     def cb(self, topic_name: str, msg: rospy.Message):
         """Subscriber callback. Can be used as callback for a specific subscriber by defining a partial function w/ the respective topic_name.
@@ -289,11 +291,12 @@ class ROSurgicalClient(ROSurgicalSocket):
         self.socket.connect((hostname, port))
         rospy.sleep(1)
         rospy.loginfo(f'Successfully connected {hostname} on port {port}.')
-        rospy.sleep(2)
 
         # Message lengths
         self.send_msg_lengths()
         self.receive_msg_lengths()
+
+        print(self.message_lens)
 
         # Set flags        
         self.all_sent = True
@@ -342,11 +345,12 @@ class ROSurgicalServer(ROSurgicalSocket):
         self.client_socket, self.client_address = self.socket.accept()
         rospy.sleep(2)
         rospy.loginfo(f'Connection from {self.client_address} has been established.')
-        rospy.sleep(2)
 
         # Message lengths
         self.receive_msg_lengths()
         self.send_msg_lengths()
+
+        print(self.message_lens)
 
         # Set flags        
         self.all_sent = True
