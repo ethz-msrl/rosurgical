@@ -1,0 +1,12 @@
+<launch>   
+
+   <node pkg="rostopic" type="rostopic" name="float_server" args="pub -r 500 /float_server std_msgs/Float32 1.0" output="screen"/>
+
+   <include file="$(find rosurgical)/launch/start_rosurgical_socket.launch">
+      <arg name="tcp_role" value="server" />
+      <arg name="topics_yaml" default="$(find rosurgical)/config/socket_topics.yaml" />
+      <arg name="cert_path" value="~/.ssl/navion-ros.crt" />  
+      <arg name="key_path" value="~/.ssl/navion-ros.key" />
+      <arg name="cert_verify_path" value="~/.ssl/hosmartai.crt" />
+   </include>
+</launch>   

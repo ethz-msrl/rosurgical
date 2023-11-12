@@ -1,0 +1,30 @@
+<launch>  
+    <!-- Arguments -->
+    <arg name="hostname" default="localhost" />
+    <arg name="tcp_role" />
+    <arg name="port" default="8080" />
+    <arg name="topics_yaml" />
+
+    <arg name="wrap_ssl" default="true" />
+    <arg name="allow_self_signed" default="true" />
+    <arg name="cert_path" default="" />
+    <arg name="key_path" default="" />
+    <arg name="cert_verify_path" default="" />
+
+    <!-- Sockets -->
+    <node name="$(arg tcp_role)" pkg="rosurgical" type="rosurgical_node.py" output="screen">
+        <!-- General parameters -->
+        <param name="tcp_role" type="string" value="$(arg tcp_role)" />
+        <param name="hostname" type="string" value="$(arg hostname)" />
+        <param name="port" type="int" value="$(arg port)" />
+        <param name="topic_yaml" type="string" value="$(arg topics_yaml)" />
+
+        <!-- SSL parameters-->
+        <param name="wrap_ssl" type="bool" value="$(arg wrap_ssl)" />
+        <param name="allow_self_signed" type="bool" value="$(arg allow_self_signed)" />
+        <param name="cert_path" type="string" value="$(arg cert_path)" />
+        <param name="key_path" type="string" value="$(arg key_path)" />
+        <param name="cert_verify_path" type="string" value="$(arg cert_verify_path)" />
+    </node>
+
+</launch>
