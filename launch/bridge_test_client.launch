@@ -1,0 +1,12 @@
+<launch>  
+    <!-- New PointStamped publishers -->
+    <!-- Sockets -->
+
+    <!-- Static transform mns equals world -->
+    <node pkg="tf" type="static_transform_publisher"  name="mns_to_world" args="0 0 0 0 0 0 mns world 100" />
+    <include file="$(find ablation_control)/launch/start_ps5_controller.launch"/>
+    <node name="tcp_client" pkg="tcp_socket" type="bridge_node.py" output="screen">
+        <param name="tcp_role" value="client"/>
+    </node>
+
+</launch>

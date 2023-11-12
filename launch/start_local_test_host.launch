@@ -1,0 +1,7 @@
+<launch>   
+   <include file="$(find tcp_socket)/launch/start_test_host.launch">
+        <arg name="cert_path" value="~/.ssl/navion-ros.crt" />  
+        <arg name="key_path" value="~/.ssl/navion-ros.key" />
+        <arg name="cert_verify_path" value="~/.ssl/hosmartai.crt" />
+   </include>
+</launch>   
