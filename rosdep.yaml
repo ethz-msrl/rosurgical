@@ -1,0 +1,4 @@
+jsk_visualization:
+  ubuntu:
+    packages:
+      - ros-noetic-jsk-visualization

@@ -12,5 +12,6 @@
   <buildtool_depend>catkin_simple</buildtool_depend>
   
   <depend>rospy</depend>
+  <depend>jsk_visualization</depend>
 
 </package>
