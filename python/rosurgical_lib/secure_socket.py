@@ -46,21 +46,22 @@ from rosurgical_lib.utils import message_type_factory, create_latency_overlay_ms
 class ROSurgicalSocket:
     def __init__(self, hostname: str, port:str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
         """
-        Constructor of a bidirectional socket for ros communication. This socket can transfer several topics at the same time.
+        Constructor of a rosurgical socket for ros communication. This socket can transfer several topics at the same time.
         
         Args:
             hostname (str): IP address of the host computer or the gate if port forwarding is used
             port (str): communication port
             message_types (List[rospy.Message]): List of all ros message types to be transferred
-            ros_role (List[str]): List of all ros roles. A role can either be 'subscriber' or 'publisher'
             topic_names (List[str]): List of all topic names. If socket acts as subscriber it is the name of the topic to subscribe to, otherwise it is the name of the topic to be published.
-            msg_lens (List[str]): List of all topic lengths. We are using a fixed length message format to avoid the overhead of sending the length of the message. 
+            ros_role (List[str]): List of all ros roles. A role can either be 'subscriber' or 'publisher'
+            cert_path (str): Path to SSL certificate
+            key_path (str): Path to private key
+            cert_verify_path (str): Path to verification certificate of the opposite host
         """
 
+        # General attributes
         self.all_sent = False
         self.all_reveived = False
-
-        # General attributes
         self.hostname = hostname
         assert len(message_types) == len(topic_names)
         self.topic_names = topic_names
@@ -151,9 +152,7 @@ class ROSurgicalSocket:
     def get_local_msg_lengths(self)-> bool:
         for key in self.subscribers:
             msg = rospy.wait_for_message(key, self.message_types[key])
-            temp_buffer = BytesIO()
-            msg.serialize(temp_buffer)
-            temp_buffer = temp_buffer.getvalue()
+            temp_buffer = self.ros_msg_to_bytes(msg)
             msg_len = len(temp_buffer)
             self.message_lens[key] = int(1.2*(msg_len+1))
 
@@ -190,10 +189,8 @@ class ROSurgicalSocket:
         # Assemble buffer
         for topic_name in self.subscriber_msgs:
             byte_array = bytearray(self.message_lens[topic_name])
-            temp_buffer = BytesIO()
             msg = self.subscriber_msgs[topic_name]
-            msg.serialize(temp_buffer)
-            temp_buffer = temp_buffer.getvalue()
+            temp_buffer = self.ros_msg_to_bytes(msg)
             
             # Check that the message length is not exceeding the maximum length
             msg_len = len(temp_buffer)
@@ -266,6 +263,13 @@ class ROSurgicalSocket:
             raise ConnectionError(e)
         
         return ssl_socket
+    
+    @staticmethod
+    def ros_msg_to_bytes(msg) -> bytes:
+        buf = BytesIO()
+        msg.serialize(buf)
+        buf = buf.getvalue()
+        return buf
 
 class ROSurgicalClient(ROSurgicalSocket):
     def __init__(self, hostname: str, port: str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:

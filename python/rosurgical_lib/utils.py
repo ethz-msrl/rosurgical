@@ -37,16 +37,46 @@ import rospy
 from jsk_rviz_plugins.msg import OverlayText
 
 def message_type_factory(msg_type: str) -> rospy.Message:
+    """
+    Dynamically generates a ROS message object of the specified type.
+
+    This function is useful in scenarios where ROS message types are determined
+    at runtime rather than being statically defined. It splits the msg_type
+    string to extract the module and class names, imports the module dynamically,
+    and retrieves the message class from it.
+
+    Parameters:
+    - msg_type (str): A string representing the ROS message type in the format
+      'module/MessageClass'. For example, 'std_msgs/String'.
+
+    Returns:
+    - rospy.Message: An instance of the specified ROS message type.
+
+    Raises:
+    - ImportError: If the module corresponding to the given message type cannot be imported.
+    - AttributeError: If the message class is not found in the specified module.
+    - ValueError: If the msg_type string format is incorrect.
+
+    Example:
+    string_msg = message_type_factory('std_msgs/String')  # Creates a String message object
+    """
+
     try:
+        # Split the message type into module name and class name
         module_name, class_name = msg_type.rsplit('/', 1)
+        # Dynamically import the module
         module = importlib.import_module(f'{module_name}.msg')
+
+        # Return the message class from the module
         return getattr(module, class_name)
+    
     except ImportError as e:
         raise ImportError(f"Could not import module for message type '{msg_type}': {e}")
     except AttributeError as e:
         raise AttributeError(f"Message type '{class_name}' not found in module '{module_name}.msg': {e}")
     except ValueError as e:
         raise ValueError(f"Invalid message type format '{msg_type}': {e}")
+
 
 
 def create_latency_overlay_msg(latency: float) -> OverlayText:
