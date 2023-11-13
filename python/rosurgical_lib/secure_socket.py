@@ -227,50 +227,63 @@ class ROSurgicalSocket:
             data = struct.pack('!i', length)
             self.communication_socket.send(data)
 
-    def zero_messages(self, dictionary: Dict)-> None:
-        """Sets all values of a dictionary to None. This is done to reset the messages after they have been sent.
+    def zero_messages(self, dictionary: Dict) -> None:
+        """
+        Sets all values of a dictionary to None. This is done to reset the messages 
+        after they have been sent, ensuring that the same messages are not sent 
+        repeatedly or erroneously.
 
         Args:
-            dictionary (Dict): dictionary to be reset
+            dictionary (Dict): The dictionary whose values are to be reset.
         """
+        # Iterate over each key in the dictionary and set its value to None
         for key in dictionary:
             dictionary[key] = None
 
     def send_msgs(self)-> None:
-        """Sends all messages to the other side of the socket.
+        """
+        Sends all messages to the other side of the socket.
+        This method aggregates all messages to be sent into a single buffer and 
+        transmits it over the socket, ensuring efficient and synchronized communication.
         """
 
-        # Initialize buffer
+        # Initialize an empty buffer to accumulate all messages
         total_buffer = None
 
-        # Assemble buffer
+        # Iterate over each message to be sent
         for topic_name in self.subscriber_msgs:
+            # Prepare a byte array for the message based on its expected length
             byte_array = bytearray(self.message_lens[topic_name])
             msg = self.subscriber_msgs[topic_name]
+
+            # Convert the ROS message to a byte stream
             temp_buffer = self.ros_msg_to_bytes(msg)
             
-            # Check that the message length is not exceeding the maximum length
+            # Check if the actual message length exceeds its expected length
             msg_len = len(temp_buffer)
             assert msg_len <= self.message_lens[topic_name], f'{topic_name} was set to have length of {self.message_lens[topic_name]} but has {msg_len} instead. Please correct it in your launch file'
 
-            # Add message to buffer
+            # Add the current message to the total buffer
             byte_array[:msg_len] = temp_buffer
             if total_buffer is None:
                 total_buffer = byte_array
             else:
                 total_buffer += byte_array
   
-        # Send buffer and reset dictionary
+        # Send the aggregated buffer through the socket
         self.communication_socket.send(total_buffer)
         
     def receive_messages(self):
-        """Receives all messages from the other side of the socket.
         """
-        # Initialize buffer
+        Receives all messages from the other side of the socket.
+        This method accumulates received data into a buffer and then decodes each message
+        before publishing it to the respective ROS topic.
+        """
+        # Initialize a buffer to accumulate received bytes
         msg_bytes = None
         i = 0
 
-        # Receive buffer
+        # Continuously receive data until the entire message is received
         while True:
             data = self.communication_socket.recv(self.msg_len)
             if not msg_bytes:
@@ -278,53 +291,86 @@ class ROSurgicalSocket:
             else:
                 msg_bytes += bytearray(data)
             i += 1
+            # Exit the loop when the entire message has been received
             if not data or len(msg_bytes) == self.msg_len: 
                 break
         
-        # Decode buffer
+        # Decode each received message and publish it
         for i, topic_name in enumerate(self.publishers):
+            # Determine the start and end points of the current message in the buffer
             start = self.receive_list[i]
             end = self.receive_list[i+1]
             temp_byte = msg_bytes[start:end]
             
-            # Decode message
+            # Deserialize the message from bytes to ROS message format
             msg = self.message_types[topic_name]().deserialize(temp_byte)
 
-            # Publioh message
+            # Publish the message to the corresponding ROS topic
             self.publishers[topic_name].publish(msg)
 
     def wrap_socket_ssl_context(self, socket: socket.socket, cert_path: str, key_path: str, cert_verify_path: str, is_server: bool):
+        """
+        Wraps a standard socket into an SSL socket with the appropriate context and settings.
+        This method configures and applies SSL settings based on whether the socket is for a server or a client.
+
+        Args:
+            socket (socket.socket): The socket to be wrapped.
+            cert_path (str): Path to the SSL certificate.
+            key_path (str): Path to the SSL private key.
+            cert_verify_path (str): Path to the verification certificate.
+            is_server (bool): Flag to indicate if the socket is for a server (True) or a client (False).
+        """
+        # Determine if self-signed certificates are allowed
         allow_self_signed = rospy.get_param('~allow_self_signed', True)
 
-        # Create ssl context 
+        # Create an SSL context with the appropriate protocol for server or client
         protocol = ssl.PROTOCOL_TLS_SERVER if is_server else ssl.PROTOCOL_TLS_CLIENT
         context = ssl.SSLContext(protocol)
         
+        # Configure the SSL context for server or client
         if is_server:
+            # Server must require client certificate
             context.verify_mode = ssl.CERT_REQUIRED
         else:
+            # Client can optionally bypass hostname verification for self-signed certificates
             context.check_hostname = False if allow_self_signed else True
             context.verify_mode = ssl.CERT_NONE if allow_self_signed else ssl.CERT_REQUIRED
             
-
+        # Load the certificate chain and verification locations
         context.load_cert_chain(cert_path, key_path)
         context.load_verify_locations(cert_verify_path)
 
-        # Wrap socket
+        # Attempt to wrap the socket with the SSL context
         try:
             if is_server:
                 ssl_socket = context.wrap_socket(socket, server_side=True)
             else:
                 ssl_socket = context.wrap_socket(socket, server_hostname=self.hostname) 
         except Exception as e:
+            # Raise an error if SSL wrapping fails
             raise ConnectionError(e)
         
         return ssl_socket
     
     @staticmethod
     def ros_msg_to_bytes(msg) -> bytes:
+        """
+        Serializes a ROS message into bytes.
+        This method is used to convert a ROS message into a byte stream, making it suitable 
+        for transmission over network sockets or for any other operations that require 
+        the message in a byte format.
+
+        Args:
+            msg: A ROS message object to be serialized.
+
+        Returns:
+            bytes: The serialized byte stream of the ROS message.
+        """
+        # Initialize a BytesIO buffer to hold the serialized data
         buf = BytesIO()
+        # Serialize the ROS message into the buffer
         msg.serialize(buf)
+        # Retrieve the byte value of the serialized data
         buf = buf.getvalue()
         return buf
 
