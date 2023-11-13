@@ -5,8 +5,8 @@
    <include file="$(find rosurgical)/launch/start_rosurgical_socket.launch">
       <arg name="tcp_role" value="server" />
       <arg name="topics_yaml" default="$(find rosurgical)/config/socket_topics.yaml" />
-      <arg name="cert_path" value="~/.ssl/navion-ros.crt" />  
-      <arg name="key_path" value="~/.ssl/navion-ros.key" />
-      <arg name="cert_verify_path" value="~/.ssl/hosmartai.crt" />
+      <arg name="cert_path" value="$(find rosurgical)/certs/server_cert.pem" />  
+      <arg name="key_path" value="$(find rosurgical)/certs/server_key.pem" />
+      <arg name="cert_verify_path" value="$(find rosurgical)/certs/client_cert.pem" />
    </include>
 </launch>   
