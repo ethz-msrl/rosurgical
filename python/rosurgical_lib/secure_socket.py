@@ -90,18 +90,27 @@ class ROSurgicalSocket:
         self.setup_ros()
 
     def setup_ros(self):
-        """Sets up ros subscribers and publishers based on the given ros roles and topic names.
+        """
+        Sets up ROS subscribers and publishers based on the given ROS roles and topic names.
+        This method iterates over each topic and its corresponding role, setting up either a 
+        subscriber or publisher as appropriate.
         """
         for topic, ros_role in zip(self.topic_names, self.ros_roles): 
+            # Retrieve the message type for the current topic
             message_type = self.message_types[topic]
+
             if ros_role == 'subscriber':
+                # Set up a ROS subscriber for the topic
                 subscriber = rospy.Subscriber(topic, message_type, partial(self.cb, topic), queue_size=1)
                 self.subscribers[topic] = subscriber
+                # Initialize a placeholder for incoming messages
                 self.subscriber_msgs[topic] = None
             elif ros_role == 'publisher':
+                # Set up a ROS publisher for the topic
                 publisher = rospy.Publisher(f'{topic}', message_type, queue_size=1)
                 self.publishers[topic] = publisher
-
+        
+        # Initialize message lengths for each topic
         self.get_local_msg_lengths()
     
     def cb(self, topic_name: str, msg: rospy.Message):
