@@ -154,38 +154,76 @@ class ROSurgicalSocket:
             self.publish_com_lat()
             
     def publish_com_lat(self)-> None:
-        """Publishes the communication latency as an overlay text and as a float.
         """
+        Publishes the communication latency as an overlay text and as a float.
+        This method is used to display the latency in the ROS environment, both visually 
+        in RViz and as a numeric value for logging or further processing.
+        """
+        # Create an OverlayText message with the current communication latency
         msg = create_latency_overlay_msg(self.com_lat)
+        # Publish the latency as an overlay text for RViz visualization
         self.com_lat_pub.publish(msg)
+        
+        # Publish the latency as a Float32 message for numerical use
         self.com_lat_float_pub.publish(Float32(self.com_lat*1000.0))
 
     def check_all_msgs_received(self)-> bool:
-        """Checks if all registered messages have been received.
         """
+        Checks if all registered messages have been received.
+        This method iterates through all the messages in the subscribers' message 
+        buffers to determine if each has received a message since the last reset.
+
+        Returns:
+            bool: True if all messages have been received, False otherwise.
+        """
+        # Iterate through all subscriber message buffers
         for key in self.subscriber_msgs:
+            # Check if any buffer is empty (None)
             if self.subscriber_msgs[key] == None:
-                return False
-        return True
+                return False # Not all messages have been received
+            
+        return True # All messages have been received
     
     def get_local_msg_lengths(self)-> bool:
+        """
+        Determines the length of each message type that the socket subscribes to.
+        This method is used to calculate and store the expected length of each message
+        to facilitate efficient data transfer.
+        """
         for key in self.subscribers:
+            # Wait for a message of each type to calculate its length
             msg = rospy.wait_for_message(key, self.message_types[key])
+            # Convert the ROS message to bytes
             temp_buffer = self.ros_msg_to_bytes(msg)
+            # Calculate the message length with a buffer margin
             msg_len = len(temp_buffer)
-            self.message_lens[key] = int(1.2*(msg_len+1))
+            self.message_lens[key] = int(1.2*(msg_len+1)) # Adding a buffer margin
 
     def receive_msg_lengths(self)-> bool:
+        """
+        Receives the lengths of messages that the socket will publish.
+        This method is used to receive the length of each message that will be published,
+        allowing the socket to allocate appropriate buffer sizes for message reception.
+        """
         for topic_name in self.publishers:
+            # Receive the length of each message from the communication socket
             data = self.communication_socket.recv(4)       
             length = struct.unpack('!i', data)[0] 
             self.message_lens[topic_name] = length
+            # Accumulate total message length and update the receive list
             self.msg_len += self.message_lens[topic_name]
             self.receive_list.append(self.receive_list[-1]+self.message_lens[topic_name])
 
     def send_msg_lengths(self)-> bool:
+        """
+        Sends the lengths of messages that the socket subscribes to.
+        This method communicates the length of each subscribed message to the opposite socket,
+        ensuring that the receiver can properly handle incoming data.
+        """
         for topic_name in self.subscribers:
+            # Get the length of each message
             length = self.message_lens[topic_name]
+            # Pack the length into a byte structure and send it
             data = struct.pack('!i', length)
             self.communication_socket.send(data)
 
