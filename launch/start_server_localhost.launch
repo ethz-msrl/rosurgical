@@ -4,7 +4,11 @@
 
    <include file="$(find rosurgical)/launch/start_rosurgical_socket.launch">
       <arg name="tcp_role" value="server" />
+
+      <!-- This is an example file that works the topics published above -->
       <arg name="topics_yaml" default="$(find rosurgical)/config/socket_topics.yaml" />
+
+      <!-- These are only example keys and certs. It is recommended to create new certified ones. -->
       <arg name="cert_path" value="$(find rosurgical)/certs/server_cert.pem" />  
       <arg name="key_path" value="$(find rosurgical)/certs/server_key.pem" />
       <arg name="cert_verify_path" value="$(find rosurgical)/certs/client_cert.pem" />

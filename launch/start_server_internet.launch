@@ -4,9 +4,15 @@
 
    <include file="$(find rosurgical)/launch/start_rosurgical_socket.launch">
       <arg name="tcp_role" value="server" />
-      <arg name="hostname" value="navion-ros.ethz.ch" />
-      <arg name="port" value="3000" />
+      
+      <!-- Replace with real values -->
+      <arg name="hostname" value="<HOSTNAME>" />
+      <arg name="port" value="<PORT>" />
+
+      <!-- This is an example file that works the topics published above -->
       <arg name="topics_yaml" default="$(find rosurgical)/config/socket_topics.yaml" />
+
+      <!-- These are only example keys and certs. It is recommended to create new certified ones. -->
       <arg name="cert_path" value="~/.ssl/navion-ros.crt" />  
       <arg name="key_path" value="~/.ssl/navion-ros.key" />
       <arg name="cert_verify_path" value="~/.ssl/hosmartai.crt" />
