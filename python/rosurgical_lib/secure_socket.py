@@ -114,37 +114,43 @@ class ROSurgicalSocket:
         self.get_local_msg_lengths()
     
     def cb(self, topic_name: str, msg: rospy.Message):
-        """Subscriber callback. Can be used as callback for a specific subscriber by defining a partial function w/ the respective topic_name.
+        """
+        Subscriber callback. Can be used as a callback for a specific subscriber by defining 
+        a partial function with the respective topic_name.
+
+        This callback is triggered whenever a message is received on a subscribed topic. 
+        It processes the message and manages the sending and receiving of all messages, 
+        ensuring synchronization and measuring communication latency.
 
         Args:
-            topic_name (str): Name of the topic
-            msg (rospy.Message): Message to be processed
+            topic_name (str): Name of the topic on which the message is received.
+            msg (rospy.Message): Message received from the topic.
         """
-        # Save message
+        # Store the received message in the corresponding topic's message buffer
         self.subscriber_msgs[topic_name] = msg
 
-        # Only send and receive messages if all messages have been received
+        # Check if all messages have been received and sent
         if self.check_all_msgs_received() and self.all_sent == True and self.all_reveived == True:
-            # Block other callbacks
+            # Reset flags to block other callbacks
             self.all_sent = False
             self.all_reveived = False
 
-            # Start timer 
+            # Start timing the round trip for latency measurement
             start = time.time()
 
-            # Send all messages
+            # Send all pending messages
             self.send_msgs()
             self.all_sent = True
 
-            # Receive all messages
+            # Receive all incoming messages
             self.receive_messages()
             self.all_reveived = True
 
-            # Time roundtrip
+            # Calculate the total round-trip time
             end = time.time()
             self.com_lat = end - start
 
-            # Publish communication latency
+            # Publish the calculated communication latency
             self.publish_com_lat()
             
     def publish_com_lat(self)-> None:
