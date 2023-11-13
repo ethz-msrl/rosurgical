@@ -78,32 +78,48 @@ def message_type_factory(msg_type: str) -> rospy.Message:
         raise ValueError(f"Invalid message type format '{msg_type}': {e}")
 
 
-
 def create_latency_overlay_msg(latency: float) -> OverlayText:
-    """Creates an overlay text message for the communication latency.
+    """
+    Creates an overlay text message for displaying communication latency in RViz.
+
+    This function generates an OverlayText message, typically used in RViz
+    visualizations, to display the communication latency. The latency is
+    shown in milliseconds.
 
     Args:
-        latency (float): Communication latency in seconds
+        latency (float): Communication latency in seconds.
 
     Returns:
-        OverlayText: Overlay text message
+        OverlayText: Overlay text message formatted to display latency.
     """
+    # Initialize OverlayText message
     msg = OverlayText()
+    
+    # Set dimensions and position of the overlay
     msg.width = 200
     msg.height = 50
     msg.left = 0
     msg.top = 0
+
+    # Configure background color (black with some transparency)
     msg.bg_color.r = 0.0
     msg.bg_color.g = 0.0
     msg.bg_color.b = 0.0
-    msg.bg_color.a = 0.4
+    msg.bg_color.a = 0.4  # Transparency
+
+    # Configure foreground color (green)
     msg.fg_color.r = 0.0
     msg.fg_color.g = 1.0
     msg.fg_color.b = 0.0
-    msg.fg_color.a = 1.0
+    msg.fg_color.a = 1.0  # Opaque
+
+    # Set font properties
     msg.line_width = 2
     msg.text_size = 14
+
+    # Set the text to display latency in milliseconds
     msg.text = f"Latency: {latency*1000.0:3.1f} ms"
+
     return msg
 
 
