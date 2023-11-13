@@ -61,7 +61,7 @@ class ROSurgicalSocket:
 
         # Initialize general attributes for the socket
         self.all_sent = False
-        self.all_reveived = False
+        self.all_received = False
         self.hostname = hostname
         # Ensure that the number of message types matches the number of topic names
         assert len(message_types) == len(topic_names)
@@ -130,10 +130,10 @@ class ROSurgicalSocket:
         self.subscriber_msgs[topic_name] = msg
 
         # Check if all messages have been received and sent
-        if self.check_all_msgs_received() and self.all_sent == True and self.all_reveived == True:
+        if self.check_all_msgs_received() and self.all_sent == True and self.all_received == True:
             # Reset flags to block other callbacks
             self.all_sent = False
-            self.all_reveived = False
+            self.all_received = False
 
             # Start timing the round trip for latency measurement
             start = time.time()
@@ -144,7 +144,7 @@ class ROSurgicalSocket:
 
             # Receive all incoming messages
             self.receive_messages()
-            self.all_reveived = True
+            self.all_received = True
 
             # Calculate the total round-trip time
             end = time.time()
