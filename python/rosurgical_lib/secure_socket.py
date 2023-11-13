@@ -358,7 +358,7 @@ class ROSurgicalClient(ROSurgicalSocket):
 
         # Set flags        
         self.all_sent = True
-        self.all_reveived = True
+        self.all_received = True
 
         # Start listening
         rospy.spin()
@@ -410,7 +410,7 @@ class ROSurgicalServer(ROSurgicalSocket):
 
         # Set flags        
         self.all_sent = True
-        self.all_reveived = True
+        self.all_received = True
 
         # Receive messages from client
         self.receive_messages()
