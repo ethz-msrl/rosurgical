@@ -46,43 +46,47 @@ from rosurgical_lib.utils import message_type_factory, create_latency_overlay_ms
 class ROSurgicalSocket:
     def __init__(self, hostname: str, port:str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
         """
-        Constructor of a rosurgical socket for ros communication. This socket can transfer several topics at the same time.
+        Constructor of a ROSurgical socket for ROS communication. This socket can transfer several topics at the same time.
         
         Args:
-            hostname (str): IP address of the host computer or the gate if port forwarding is used
-            port (str): communication port
-            message_types (List[rospy.Message]): List of all ros message types to be transferred
-            topic_names (List[str]): List of all topic names. If socket acts as subscriber it is the name of the topic to subscribe to, otherwise it is the name of the topic to be published.
-            ros_role (List[str]): List of all ros roles. A role can either be 'subscriber' or 'publisher'
-            cert_path (str): Path to SSL certificate
-            key_path (str): Path to private key
-            cert_verify_path (str): Path to verification certificate of the opposite host
+            hostname (str): IP address of the host computer or the gate if port forwarding is used.
+            port (str): Communication port.
+            message_types (List[rospy.Message]): List of all ROS message types to be transferred.
+            topic_names (List[str]): List of all topic names. If socket acts as a subscriber, it is the name of the topic to subscribe to, otherwise it is the name of the topic to be published.
+            ros_roles (List[str]): List of all ROS roles. A role can either be 'subscriber' or 'publisher'.
+            cert_path (str): Path to SSL certificate.
+            key_path (str): Path to private key.
+            cert_verify_path (str): Path to verification certificate of the opposite host.
         """
 
-        # General attributes
+        # Initialize general attributes for the socket
         self.all_sent = False
         self.all_reveived = False
         self.hostname = hostname
+        # Ensure that the number of message types matches the number of topic names
         assert len(message_types) == len(topic_names)
         self.topic_names = topic_names
+        # Create a dictionary mapping topic names to their corresponding message types
         self.message_types = {topic: message_type_factory(msg_type) for topic, msg_type in zip(topic_names, message_types)}
+        # Initialize a dictionary to keep track of message lengths for each topic
         self.message_lens = {topic: None for topic in topic_names}
         self.msg_len = 0
         self.receive_list = [0]
         self.ros_roles = ros_roles
         
-        # Ros attributes
+        # Initialize ROS communication attributes
         self.subscribers = {}
         self.subscriber_msgs = {}
         self.subscriber_lens = {}
         self.publishers = {}
         self.publishers_lens = {}
         
-        # Latency attributes
+        # Initialize latency measurement attributes
         self.com_lat_pub = rospy.Publisher("communication_latency", OverlayText, queue_size=1)
         self.com_lat_float_pub = rospy.Publisher("communication_latency_float", Float32, queue_size=1)
         self.com_lat = 0.0
         
+        # Setup ROS components (subscriptions, publications, etc.)
         self.setup_ros()
 
     def setup_ros(self):
