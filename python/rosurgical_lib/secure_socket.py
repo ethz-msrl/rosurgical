@@ -376,63 +376,93 @@ class ROSurgicalSocket:
 
 class ROSurgicalClient(ROSurgicalSocket):
     def __init__(self, hostname: str, port: str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
+        """
+        Initializes a ROSurgicalClient instance, which extends ROSurgicalSocket with client-specific functionalities.
+
+        This constructor sets up the socket connection (with or without SSL/TLS), connects to the server, 
+        and handles the initial exchange of message lengths.
+
+        Args:
+            hostname (str): IP address of the server.
+            port (str): Port number for the connection.
+            message_types, topic_names, ros_roles, cert_path, key_path, cert_verify_path: 
+                See ROSurgicalSocket documentation for these parameters.
+        """
+        # Initialize the parent ROSurgicalSocket class
         super().__init__(hostname, port, message_types, topic_names, ros_roles, cert_path, key_path, cert_verify_path)
 
-        # Initialize client
+        # Create a standard socket
         self.socket_no_ssl = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
         self.socket_no_ssl.setblocking(True)
 
-        # Check if ssl requested
+        # Determine if SSL/TLS wrapping is required
         paths = [cert_path, key_path, cert_verify_path]
         wrap_ssl = all(path is not None for path in paths)
 
+        # Establish SSL/TLS or standard TCP/IP connection
         if wrap_ssl:
             rospy.loginfo("Establishing SSL/TLS connection")
             self.socket = self.wrap_socket_ssl_context(self.socket_no_ssl, cert_path, key_path, cert_verify_path, False)
         else:
             rospy.loginfo("Establishing TCP/IP connection without SSL")
             self.socket = self.socket_no_ssl
-        # Connect to host
+        
+        # Connect to the server
         self.socket.connect((hostname, port))
         rospy.loginfo(f'Successfully connected {hostname} on port {port}.')
-        rospy.sleep(1)
+        rospy.sleep(1) # Short delay to ensure the connection is established
 
-        # Message lengths
+        # Exchange message lengths with the server
         self.send_msg_lengths()
         self.receive_msg_lengths()
-        rospy.sleep(1)
+        rospy.sleep(1) # Short delay after exchanging message lengths
 
-        # Set flags        
+        # Set flags indicating the readiness to send and receive messages   
         self.all_sent = True
         self.all_received = True
 
-        # Start listening
+        # Start the ROS event loop
         rospy.spin()
 
     @property
     def communication_socket(self) -> socket.socket:
         """
+        Property to access the communication socket of the client.
+
         Returns:
-            socket.socket: socket object to be used for communication. 
+            socket.socket: The socket object used for communication in the client.
         """
         return self.socket
 
 class ROSurgicalServer(ROSurgicalSocket):
     def __init__(self, hostname: str, port: str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
+        """
+        Initializes a ROSurgicalServer instance, extending ROSurgicalSocket with server-specific functionalities.
+
+        This constructor sets up the server socket (with or without SSL/TLS), binds it to the given hostname and port,
+        listens for and accepts a client connection, and manages the initial exchange of message lengths.
+
+        Args:
+            hostname (str): The hostname or IP address to bind the server to.
+            port (str): The port number to bind the server to.
+            message_types, topic_names, ros_roles, cert_path, key_path, cert_verify_path: 
+                See ROSurgicalSocket documentation for these parameters.
+        """
+        # Initialize the parent ROSurgicalSocket class
         super().__init__(hostname, port, message_types, topic_names, ros_roles, cert_path, key_path, cert_verify_path)
 
-        # Initialize host
+        # Create and configure a standard socket for the server
         self.socket_no_ssl = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
         self.socket_no_ssl.setblocking(True)
         self.socket_no_ssl.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket_no_ssl.bind((hostname, port))
         rospy.loginfo(f'Server {hostname} on port {port} launched.')
 
-        # Check if ssl requested
+        # Determine if SSL/TLS wrapping is required
         paths = [cert_path, key_path, cert_verify_path]
         wrap_ssl = all(path is not None for path in paths)
 
-        # Wrap socket if requested
+        # Wrap socket with SSL/TLS if requested
         if wrap_ssl:
             rospy.loginfo("Establishing SSL/TLS connection")
             self.socket = self.wrap_socket_ssl_context(self.socket_no_ssl, cert_path, key_path, cert_verify_path, True)
@@ -440,34 +470,36 @@ class ROSurgicalServer(ROSurgicalSocket):
             rospy.loginfo("Establishing TCP/IP connection without SSL.")
             self.socket = self.socket_no_ssl
 
-        # Listen for client
+        # Listen for incoming client connections
         self.socket.listen(1) # Allow single connection only
         rospy.loginfo(f'Server {hostname} listening to port {port}.')
 
-        # Accept client connection
+        # Accept a connection from the client
         self.client_socket, self.client_address = self.socket.accept()
         rospy.loginfo(f'Connection from {self.client_address} has been established.')
-        rospy.sleep(2)
+        rospy.sleep(2) # Short delay after accepting the connection
 
-        # Message lengths
+        # Exchange message lengths with the client
         self.receive_msg_lengths()
         self.send_msg_lengths()
         rospy.sleep(2)
 
-        # Set flags        
+        # Set flags indicating readiness to send and receive messages      
         self.all_sent = True
         self.all_received = True
 
-        # Receive messages from client
+        # Start receiving messages from the client
         self.receive_messages()
 
-        # Start listening
+        # Start the ROS event loop
         rospy.spin()
 
     @property
     def communication_socket(self) -> socket.socket:
         """
+        Property to access the communication socket of the server.
+
         Returns:
-            socket.socket: socket object to be used for communication. 
+            socket.socket: The socket object used for communication with the client.
         """
         return self.client_socket
