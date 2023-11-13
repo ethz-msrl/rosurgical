@@ -80,12 +80,12 @@ roslaunch rosurgical start_client_localhost.launch
 To run `rosurgical` between two systems connected within the same local network, you will need to launch the package on both the server and client systems. Ensure that both systems are configured to be on the same subnet for successful communication. Verify that both the server and client machines are connected to the same local network. Confirm that firewalls or network policies do not block the communication ports used by `rosurgical`.
 
 #### Launching on the Server:
-On the server machine, run the following command. Make sure to adjust the <HOSTNAME> and <PORT> accordingly:
+On the server machine, run the following command. Make sure to adjust the `<HOSTNAME>` and `<PORT>` accordingly:
 ```bash
 roslaunch rosurgical start_server_internet.launch
 ```
 #### Launching on the Client:
-On the client machine, execute the following command. Make sure to adjust the <HOSTNAME> and <PORT> accordingly:
+On the client machine, execute the following command. Make sure to adjust the `<HOSTNAME>` and `<PORT>` accordingly:
 ```bash
 roslaunch rosurgical start_client_internet.launch
 ```
