@@ -123,40 +123,46 @@ def create_latency_overlay_msg(latency: float) -> OverlayText:
     return msg
 
 
-def parse_topic_paramters(tcp_role: str, directory: str)-> Tuple[List]:
-    """ Loads the specified yaml file and extracts the relevant information of the socket topics. 
-    In particular, it extracts the topic names, types, lenghts as well as the ros role depending 
-    on the specified tcp_role
+def parse_topic_parameters(tcp_role: str, directory: str) -> Tuple[List, List, List, List]:
+    """
+    Loads the specified yaml file and extracts the relevant information of the socket topics. 
+    It extracts the topic names, types, lengths, as well as the ROS roles depending on the 
+    specified tcp_role ('server' or 'client').
 
     Args:
-        tcp_role (string): 'host' or 'clients'
-        directory (string): of the yaml file 
+        tcp_role (str): Specifies the TCP role, either 'server' or 'client'.
+        directory (str): Path to the YAML file containing topic configurations.
 
     Returns:
-        topic_names (List): list of all topic names
-        message_types (List): list of all message types
-        message_lengths (List): list of message lengths
-        ros_roles (List): List of all ros roles 
+        Tuple containing:
+            - List of topic names (List[str]).
+            - List of message types (List[str]).
+            - List of ROS roles (List[str]) corresponding to each topic based on the tcp_role.
     """
+
     with open(directory, 'r') as file:
+        # Load data from the YAML file
         data = yaml.load(file, Loader=yaml.FullLoader)
 
+    # Initialize lists to store topic details
     topic_names = []
     message_types = []
     ros_roles = []
-    
-    # Get all topic names
+
+    # Iterate over each topic in the data
     for topic in data:
-        # Get message type
+        # Extract and store the topic name
         topic_names.append(topic)
 
-        # Get message length
+        # Extract and store the message type
         msg_type = data[topic]["msg_type"]
         message_types.append(msg_type)
 
-        # Get ros role
+        # Determine the ROS role based on the origin and tcp_role
         origin = data[topic]["origin"]
-        assert origin in ["server", "client"]
+        assert origin in ["server", "client"], "Origin must be either 'server' or 'client'"
+
+        # Assign subscriber or publisher role based on tcp_role
         if origin == tcp_role:
             ros_role = "subscriber"
         else:
@@ -164,3 +170,4 @@ def parse_topic_paramters(tcp_role: str, directory: str)-> Tuple[List]:
         ros_roles.append(ros_role)
 
     return (topic_names, message_types, ros_roles)
+
