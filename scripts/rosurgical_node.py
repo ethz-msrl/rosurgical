@@ -35,7 +35,7 @@ import os
 import rospy
 
 from rosurgical_lib.secure_socket import ROSurgicalServer, ROSurgicalClient
-from rosurgical_lib.utils import parse_topic_paramters
+from rosurgical_lib.utils import parse_topic_parameters
 
 
 if __name__ == '__main__':
@@ -65,7 +65,7 @@ if __name__ == '__main__':
     # Get topic details
     yaml_dir = rospy.get_param('~topic_yaml')
     assert os.path.exists(yaml_dir), f"Topic yaml could not be found {yaml_dir}"
-    topic_names, message_types, ros_roles = parse_topic_paramters(tcp_role, yaml_dir)
+    topic_names, message_types, ros_roles = parse_topic_parameters(tcp_role, yaml_dir)
 
     # Initialize socket
     try:
