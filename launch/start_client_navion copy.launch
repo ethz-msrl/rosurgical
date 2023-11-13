@@ -7,8 +7,8 @@
       <arg name="hostname" value="navion-ros.ethz.ch" />
       <arg name="port" value="3000" />
       <arg name="topics_yaml" default="$(find rosurgical)/config/socket_topics.yaml" />
-      <arg name="cert_path" value="$(find rosurgical)/certs/client_cert.pem" />  
-      <arg name="key_path" value="$(find rosurgical)/certs/client_key.pem" />
-      <arg name="cert_verify_path" value="$(find rosurgical)/certs/server_cert.pem" />
+      <arg name="cert_path" value="~/.ssl/hosmartai.crt" />  
+      <arg name="key_path" value="~/.ssl/hosmartai.key" />
+      <arg name="cert_verify_path" value="~/.ssl/navion-ros.crt" />
    </include>
 </launch>   
