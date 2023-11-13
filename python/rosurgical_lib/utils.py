@@ -97,17 +97,12 @@ def parse_topic_paramters(tcp_role: str, directory: str)-> Tuple[List]:
 
     topic_names = []
     message_types = []
-    message_lengths = []
     ros_roles = []
     
     # Get all topic names
     for topic in data:
         # Get message type
         topic_names.append(topic)
-
-        # Get message length
-        msg_len = data[topic]["msg_len"]
-        message_lengths.append(msg_len)
 
         # Get message length
         msg_type = data[topic]["msg_type"]
@@ -122,4 +117,4 @@ def parse_topic_paramters(tcp_role: str, directory: str)-> Tuple[List]:
             ros_role = "publisher"
         ros_roles.append(ros_role)
 
-    return (topic_names, message_types, message_lengths, ros_roles)
+    return (topic_names, message_types, ros_roles)

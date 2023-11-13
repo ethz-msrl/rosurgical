@@ -44,7 +44,7 @@ from rosurgical_lib.utils import message_type_factory, create_latency_overlay_ms
 
 
 class ROSurgicalSocket:
-    def __init__(self, hostname: str, port:str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], msg_lens: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
+    def __init__(self, hostname: str, port:str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
         """
         Constructor of a bidirectional socket for ros communication. This socket can transfer several topics at the same time.
         
@@ -268,8 +268,8 @@ class ROSurgicalSocket:
         return ssl_socket
 
 class ROSurgicalClient(ROSurgicalSocket):
-    def __init__(self, hostname: str, port: str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str] , msg_lens: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
-        super().__init__(hostname, port, message_types, topic_names, ros_roles, msg_lens, cert_path, key_path, cert_verify_path)
+    def __init__(self, hostname: str, port: str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
+        super().__init__(hostname, port, message_types, topic_names, ros_roles, cert_path, key_path, cert_verify_path)
 
         # Initialize client
         self.socket_no_ssl = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 
@@ -311,8 +311,8 @@ class ROSurgicalClient(ROSurgicalSocket):
         return self.socket
 
 class ROSurgicalServer(ROSurgicalSocket):
-    def __init__(self, hostname: str, port: str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], msg_lens: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
-        super().__init__(hostname, port, message_types, topic_names, ros_roles, msg_lens, cert_path, key_path, cert_verify_path)
+    def __init__(self, hostname: str, port: str, message_types: List[rospy.Message], topic_names: List[str], ros_roles: List[str], cert_path: str, key_path: str, cert_verify_path: str) -> None:
+        super().__init__(hostname, port, message_types, topic_names, ros_roles, cert_path, key_path, cert_verify_path)
 
         # Initialize host
         self.socket_no_ssl = socket.socket(socket.AF_INET, socket.SOCK_STREAM) 

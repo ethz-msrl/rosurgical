@@ -65,14 +65,14 @@ if __name__ == '__main__':
     # Get topic details
     yaml_dir = rospy.get_param('~topic_yaml')
     assert os.path.exists(yaml_dir), f"Topic yaml could not be found {yaml_dir}"
-    topic_names, message_types, msg_lens, ros_roles = parse_topic_paramters(tcp_role, yaml_dir)
-    print("Topic")
+    topic_names, message_types, ros_roles = parse_topic_paramters(tcp_role, yaml_dir)
+
     # Initialize socket
     try:
         if tcp_role == 'server':
-            socket = ROSurgicalServer(hostname, port, message_types, topic_names, ros_roles, msg_lens, cert_path, key_path, cert_verify_path)
+            socket = ROSurgicalServer(hostname, port, message_types, topic_names, ros_roles, cert_path, key_path, cert_verify_path)
         elif tcp_role == 'client':
-            socket = ROSurgicalClient(hostname, port, message_types, topic_names, ros_roles, msg_lens, cert_path, key_path, cert_verify_path)
+            socket = ROSurgicalClient(hostname, port, message_types, topic_names, ros_roles, cert_path, key_path, cert_verify_path)
     
     except Exception as e:
         rospy.logerr(f"An error occurred: {e}")
