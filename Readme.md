@@ -13,6 +13,17 @@
 
 Additional, the `rosurgical` node on each host publishes the communication latency to its respective ROS environment.
 
+## Installation
+```rosurgical``` is compatible with ROS noetic. Make sure that ros noetic is installed and that you have a catkin workspace configured. After cloning ```rosurgical``` into the src directory, the dependencies can be installed by running
+```bash
+sudo rosdep update
+rosdep install --from-paths <PATH_TO_ROSURGICAL> --ignore-src --rosdistro noetic
+```
+Subsequently, the package can be build by running 
+```bash
+catkin build rosurgical
+```
+
 ## Node
 ---
 ### `rosurgical_node.py`
