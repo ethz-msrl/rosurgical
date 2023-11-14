@@ -64,6 +64,12 @@ In this example:
 
 Users should modify this file to reflect the specific topics and message types used in their telesurgical application.
 
+## Launch files
+- `start_server_localhost.launch`: Starts the server for testing `rosurgical` on a localhost. The test publishes a `std_msgs/Float32` and a `std_msgs/String` and registers them in the socket for transmission.
+- `start_client_localhost.launch`: Starts the client for testing `rosurgical` on a localhost. The test publishes a `std_msgs/Float32` and a `std_msgs/String` and registers them in the socket for transmission.
+- `start_server_internet.launch`: Starts the server for testing `rosurgical` in the network or public internet. The test publishes a `std_msgs/Float32` and a `std_msgs/String` and registers them in the socket for transmission. The HOSTNAME and PORT need to be configured accordingly. 
+- `start_client_internet.launch`: Starts the client for testing `rosurgical` in the network or public internet. The test publishes a `std_msgs/Float32` and a `std_msgs/String` and registers them in the socket for transmission. The HOSTNAME and PORT need to be configured accordingly. 
+
 ## Quickstart Guide
 ---
 ### Localhost
@@ -73,18 +79,17 @@ Before running the commands, ensure that `rosurgical` is properly installed on y
 You need to launch the following command in two different terminals:
 ```bash
 roslaunch rosurgical start_server_localhost.launch
+```
+```bash
 roslaunch rosurgical start_client_localhost.launch
 ```
 
 ### Local Network
 To run `rosurgical` between two systems connected within the same local network, you will need to launch the package on both the server and client systems. Ensure that both systems are configured to be on the same subnet for successful communication. Verify that both the server and client machines are connected to the same local network. Confirm that firewalls or network policies do not block the communication ports used by `rosurgical`.
-
-#### Launching on the Server:
 On the server machine, run the following command. Make sure to adjust the `<HOSTNAME>` and `<PORT>` accordingly:
 ```bash
 roslaunch rosurgical start_server_internet.launch
 ```
-#### Launching on the Client:
 On the client machine, execute the following command. Make sure to adjust the `<HOSTNAME>` and `<PORT>` accordingly:
 ```bash
 roslaunch rosurgical start_client_internet.launch
@@ -107,8 +112,8 @@ Typically, the server host is part of a local network behind a router and does n
 4. **Use the Router's Public IP Address**: When setting up the client, use the router's public IP address as the `hostname` in the `rosurgical` configuration. This IP address can be found by searching "What is my IP" in a web browser, or through your router's settings page.
 
 5. **Launch `rosurgical`**:
-   - On the server machine, run the `rosurgical` server as usual.
-   - On the client machine (over the internet), ensure it's configured to connect to the router's public IP and the port you've forwarded.
+    - Launch `rosurgical` normally
+    - On the client machine (over the internet), ensure it's configured to connect to the router's public IP and the port you've forwarded.
 
 
 ### Internet without Access to Router Settings (e.g., University or Hospital Network)
@@ -127,7 +132,6 @@ Running `rosurgical` on networks where you do not have access to router settings
 - Once a public IP is assigned and the necessary ports are open, you can launch `rosurgical` as you would normally:
    - On the server machine, use the public IP as the `hostname`.
    - On the client machine, connect to the server's public IP and the designated port.
-
 
 ### Ports <= 1024 (Privileged Ports)
 Privileged ports are those with port numbers less than 1024. In many systems, only the root user has permission to bind to these ports. If `rosurgical` needs to use a privileged port, you can set up a port redirection from a higher, non-privileged port to the desired privileged port using `iptables`.
