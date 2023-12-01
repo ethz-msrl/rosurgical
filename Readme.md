@@ -9,7 +9,7 @@
 
 ![Block Diagram](misc/block_diagram.png)
 
-`rosurgical` allows offers secure communication between the server and the client, by establishing an SSL/TLS connection. The host authenticate each other and then establish an encrypted connection. 
+`rosurgical` offers secure communication between the server and the client, by establishing an SSL/TLS connection. The hosts authenticate each other and then establish an encrypted connection. 
 
 Additional, the `rosurgical` node on each host publishes the communication latency to its respective ROS environment.
 
@@ -107,7 +107,7 @@ roslaunch rosurgical start_client_internet.launch
 ```
 
 ### Internet with Access to Router Settings
-Typically, the server host is part of a local network behind a router and does not have a direct public IP address. In this case, you'll need to set up port forwarding on your router. This allows external connections from the internet to be directed to the server host within your local network.When running `rosurgical` over the Internet and you have access to your router's settings, you'll need to set up port forwarding. This configuration allows external machines to connect to your `rosurgical` server through the internet by directing traffic from a specific port on your router to the server host within your local network. 
+Typically, the server host is part of a local network behind a router and does not have a direct public IP address. In this case, you'll need to set up port forwarding on your router. This allows external connections from the internet to be directed to the server host within your local network.When running `rosurgical` over the internet and you have access to your router's settings, you'll need to set up port forwarding. This configuration allows external machines to connect to your `rosurgical` server through the internet by directing traffic from a specific port on your router to the server host within your local network. 
 
 #### Steps for Configuration:
 
@@ -118,14 +118,13 @@ Typically, the server host is part of a local network behind a router and does n
 3. **Set Up Port Forwarding**:
    - Navigate to the Port Forwarding section of your router's settings.
    - Create a new port forwarding entry. Enter the local IP address of your server and the port number used by `rosurgical`.
-   - Specify the external port that will be used for accessing `rosurgical` over the internet. This can be the same as the internal port if it's available.
+   - Specify the external port that will be used for accessing `rosurgical` over the internet.
 
 4. **Use the Router's Public IP Address**: When setting up the client, use the router's public IP address as the `hostname` in the `rosurgical` configuration. This IP address can be found by searching "What is my IP" in a web browser, or through your router's settings page.
 
 5. **Launch `rosurgical`**:
     - Launch `rosurgical` normally
     - On the client machine (over the internet), ensure it's configured to connect to the router's public IP and the port you've forwarded.
-
 
 ### Internet without Access to Router Settings (e.g., University or Hospital Network)
 
