@@ -13,6 +13,8 @@
 
 Additional, the `rosurgical` node on each host publishes the communication latency to its respective ROS environment.
 
+> **INFO:** ROSurgical has initially been developed for a use case, which did not require the transmission of data-intesive streams (e.g. videos), and was successfully tested internationally for this use case. For use cases requiring video streams, ROSurgical's feasibility has only been tested over short distances. The full assessment of its feasiblity for data-intesinve tasks over long distances is still outstanding.  
+
 ## Installation
 ```rosurgical``` is compatible with ROS noetic. Make sure that ros noetic is installed and that you have a catkin workspace configured. After cloning ```rosurgical``` into the src directory of your workspace, the dependencies can be installed by running:
 ```bash
